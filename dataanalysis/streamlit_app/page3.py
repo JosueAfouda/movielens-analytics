@@ -3,6 +3,19 @@ import pandas as pd
 from pathlib import Path
 import re
 
+ ##### ====== Mise en cache de l'initialisation du Client ===
+from moviesdk import MovieClient, MovieConfig
+
+@st.cache_resource
+def get_movie_client():
+    config = MovieConfig(movie_base_url="https://movielens-api-rmr7.onrender.com")
+    client = MovieClient(config=config)
+    client.health_check()
+    return client
+
+client = get_movie_client()
+
+
 # === Configuration et chargement des fichiers ===
 output_dir = Path(__file__).resolve().parents[1] / "output"
 movie_stats = pd.read_parquet(output_dir / "top_movies_by_ratings.parquet")
@@ -32,7 +45,7 @@ with st.expander("🎯 Filtres avancés", expanded=True):
         lambda x: int(re.search(r"\((\d{4})\)", x).group(1)) if re.search(r"\((\d{4})\)", x) else None
     )
     years = movie_stats['year'].dropna().astype(int)
-    selected_years = col2.slider("Année de sortie", min_value=int(years.min()), max_value=int(years.max()), value=(1990, 2010))
+    selected_years = col2.slider("Année de sortie", min_value=int(years.min()), max_value=int(years.max()), value=(1990, 2018))
 
     selected_rating = col1.slider("Note moyenne min.", 0.0, 5.0, 3.5, 0.1)
     selected_votes = col2.slider("Nombre de votes min.", 0, int(movie_stats['rating_count'].max()), 50, 10)
@@ -45,15 +58,7 @@ with st.expander("🎯 Filtres avancés", expanded=True):
 # === Filtrage des films ===
 filtered_movies = movie_stats.copy()
 
-############################################################
-
-# Initialisation du client
-from moviesdk import MovieClient, MovieConfig
-config = MovieConfig(movie_base_url="https://movielens-api-rmr7.onrender.com")
-client = MovieClient(config=config)
-
-# Vérification que l'API est opérationnelle
-client.health_check()
+########## Ajout de la colonne 'genre' #####################
 
 # Mise en cache locale des genres
 genre_cache = {}
@@ -71,7 +76,6 @@ def get_genres_with_cache(movie_id: int):
 
 # Application sur la DataFrame
 filtered_movies['genre'] = filtered_movies['movieId'].apply(get_genres_with_cache)
-
 
 #################################################################
 
