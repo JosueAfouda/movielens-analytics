@@ -376,7 +376,30 @@ DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprec
 
 ```
 
+Pour la Doc du process d'affichage des images des films et de leurs liens :
 
+Site de création de l'API : https://www.omdbapi.com/apikey.aspx?__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=%2FwEPDwUKLTIwNDY4MTIzNQ9kFgYCAQ9kFggCAQ8QDxYCHgdDaGVja2VkaGRkZGQCAw8QDxYCHwBnZGRkZAIFDxYCHgdWaXNpYmxlaGQCBw8WAh8BZ2QCAg8WAh8BaGQCAw8WAh8BaGQYAQUeX19Db250cm9sc1JlcXVpcmVQb3N0QmFja0tleV9fFgMFC3BhdHJlb25BY2N0BQtwYXRyZW9uQWNjdAUIZnJlZUFjY3SZmkfBgEVOtEhBRPgn0xJZZDjfMEiMoho3O8lIVPYLXg%3D%3D&__VIEWSTATEGENERATOR=5E550F58&__EVENTVALIDATION=%2FwEdAAhq8u7G6E8iNQTDLBqGZykXmSzhXfnlWWVdWIamVouVTzfZJuQDpLVS6HZFWq5fYphdL1XrNEjnC%2FKjNya%2Bmqh8hRPnM5dWgso2y7bj7kVNLSFbtYIt24Lw6ktxrd5Z67%2F4LFSTzFfbXTFN5VgQX9Nbzfg78Z8BXhXifTCAVkevd2U20ItIGqFIf8giu%2B0PAasvwu4KgXUo9rywyT%2ByOXGt&at=freeAcct&Email2=afouda.josue%40gmail.com&FirstName=JOSUE&LastName=AFOUDA&TextArea1=a+small+streamlit+app+for+learning+using+API&Button1=Submit
+
+On recoit un mail :
+
+Here is your key: 135f1ef
+
+Please append it to all of your API requests,
+
+OMDb API: http://www.omdbapi.com/?i=tt3896198&apikey=135f1ef
+
+Click the following URL to activate your key: http://www.omdbapi.com/apikey.aspx?VERIFYKEY=e8e6d461-750a-45fe-8de6-b8b9cf377e3a
+If you did not make this request, please disregard this email.
+
+On active l'API en cliquant sur le lien
+
+Exécuter script get_movie_poster.py 
+
+Petite modification dans page3.py
+
+ça fonctionne bien
+
+J'essaie quand même de télécharger les images en local : script download_movie_poster.py
 
 
 

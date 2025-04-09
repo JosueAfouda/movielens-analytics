@@ -23,14 +23,19 @@ genre_df = pd.read_parquet(output_dir / "genre_df.parquet")
 tags_df = pd.read_parquet(output_dir / "user_tag_stats.parquet")
 ratings_df = pd.read_parquet(output_dir / "ratings.parquet")
 
+# === Chargement des métadonnées enrichies ===
+meta_links_df = pd.read_parquet(output_dir / "links_enriched.parquet")
+meta_links = meta_links_df.set_index("movieId")[["imdb_url", "poster_url"]].to_dict(orient="index")
+#st.write(meta_links)
+
 # Pour les métadonnées supplémentaires (ex: lien vers IMDb)
-links_path = output_dir / "meta.json"
-if links_path.exists():
-    import json
-    with open(links_path) as f:
-        meta_links = json.load(f)
-else:
-    meta_links = {}
+# links_path = output_dir / "meta.json"
+# if links_path.exists():
+#     import json
+#     with open(links_path) as f:
+#         meta_links = json.load(f)
+# else:
+#     meta_links = {}
 
 # === Filtres de recherche ===
 st.title("🔎 Explorateur de films")
@@ -111,15 +116,19 @@ if st.button("🔍 Lancer la recherche"):
 
     # === Affichage des films sous forme de cartes ===
     def generate_card(movie):
-        imdb_url = meta_links.get(str(movie['movieId']), {}).get('imdb', "#")
-        poster_url = meta_links.get(str(movie['movieId']), {}).get('poster', "https://via.placeholder.com/120x180?text=No+Image")
+        movie_id = int(movie['movieId'])  # S'assurer que la clé est bien un int
+        imdb_url = meta_links.get(movie_id, {}).get('imdb_url', "#")
+        poster_url = meta_links.get(movie_id, {}).get('poster_url', "https://via.placeholder.com/120x180?text=No+Image")
 
         with st.container():
             cols = st.columns([1, 4])
             with cols[0]:
                 st.image(poster_url, width=120)
             with cols[1]:
-                st.markdown(f"### [{movie['title']}]({imdb_url})")
+                st.markdown(
+                    f"""<h4><a href="{imdb_url}" target="_blank" rel="noopener noreferrer">{movie['title']}</a></h4>""",
+                    unsafe_allow_html=True
+                )
                 st.markdown(f"**Genres :** {movie['genre']}")
                 st.markdown(f"**Note moyenne :** ⭐ {movie['avg_rating']:.2f}")
                 st.markdown(f"**Nombre d'évaluations :** {movie['rating_count']}")
