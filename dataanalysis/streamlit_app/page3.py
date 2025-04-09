@@ -55,77 +55,84 @@ with st.expander("🎯 Filtres avancés", expanded=True):
 
     keyword = col3.text_input("Mot-clé dans le titre")
 
-# === Filtrage des films ===
-filtered_movies = movie_stats.copy()
 
-########## Ajout de la colonne 'genre' #####################
+# Bouton pour lancer la recherche
+if st.button("🔍 Lancer la recherche"):
 
-# Mise en cache locale des genres
-genre_cache = {}
+    # === Filtrage des films ===
+    filtered_movies = movie_stats.copy()
 
-def get_genres_with_cache(movie_id: int):
-    if movie_id in genre_cache:
-        return genre_cache[movie_id]
-    try:
-        movie = client.get_movie(movie_id)
-        genres = movie.genres  # Ex: "Comedy|Drama"
-        genre_cache[movie_id] = genres
-        return genres
-    except Exception:
-        return None
+    ########## Ajout de la colonne 'genre' #####################
 
-# Application sur la DataFrame
-filtered_movies['genre'] = filtered_movies['movieId'].apply(get_genres_with_cache)
+    # Mise en cache locale des genres
+    genre_cache = {}
 
-#################################################################
+    def get_genres_with_cache(movie_id: int):
+        if movie_id in genre_cache:
+            return genre_cache[movie_id]
+        try:
+            movie = client.get_movie(movie_id)
+            genres = movie.genres  # Ex: "Comedy|Drama"
+            genre_cache[movie_id] = genres
+            return genres
+        except Exception:
+            return None
+
+    # Application sur la DataFrame
+    filtered_movies['genre'] = filtered_movies['movieId'].apply(get_genres_with_cache)
+
+    #################################################################
 
 
-if selected_genres:
-    filtered_movies = filtered_movies[filtered_movies['genre'].apply(lambda g: any(genre in g for genre in selected_genres))]
+    if selected_genres:
+        filtered_movies = filtered_movies[filtered_movies['genre'].apply(lambda g: any(genre in g for genre in selected_genres))]
 
-filtered_movies = filtered_movies[
-    (filtered_movies['avg_rating'] >= selected_rating) &
-    (filtered_movies['rating_count'] >= selected_votes) &
-    (filtered_movies['year'].between(*selected_years))
-]
+    filtered_movies = filtered_movies[
+        (filtered_movies['avg_rating'] >= selected_rating) &
+        (filtered_movies['rating_count'] >= selected_votes) &
+        (filtered_movies['year'].between(*selected_years))
+    ]
 
-if keyword:
-    filtered_movies = filtered_movies[filtered_movies['title'].str.contains(keyword, case=False)]
+    if keyword:
+        filtered_movies = filtered_movies[filtered_movies['title'].str.contains(keyword, case=False)]
 
-if selected_tags:
-    def has_tags(row):
-        return all(tag in row.get('tags', '') for tag in selected_tags)
-    if 'tags' in filtered_movies.columns:
-        filtered_movies = filtered_movies[filtered_movies.apply(has_tags, axis=1)]
+    if selected_tags:
+        def has_tags(row):
+            return all(tag in row.get('tags', '') for tag in selected_tags)
+        if 'tags' in filtered_movies.columns:
+            filtered_movies = filtered_movies[filtered_movies.apply(has_tags, axis=1)]
 
-# === Résumé en haut ===
-st.markdown("## 🔎 Résultats de la recherche")
-k1, k2, k3 = st.columns(3)
-k1.metric("🎞️ Nombre de films", len(filtered_movies))
-k2.metric("⭐ Note moyenne", f"{filtered_movies['avg_rating'].mean():.2f}" if not filtered_movies.empty else "N/A")
-k3.metric("👥 Votes moyens", f"{filtered_movies['rating_count'].mean():.0f}" if not filtered_movies.empty else "N/A")
+    # === Résumé en haut ===
+    st.markdown("## 🔎 Résultats de la recherche")
+    k1, k2, k3 = st.columns(3)
+    k1.metric("🎞️ Nombre de films", len(filtered_movies))
+    k2.metric("⭐ Note moyenne", f"{filtered_movies['avg_rating'].mean():.2f}" if not filtered_movies.empty else "N/A")
+    k3.metric("👥 Votes moyens", f"{filtered_movies['rating_count'].mean():.0f}" if not filtered_movies.empty else "N/A")
 
-# === Affichage des films sous forme de cartes ===
-def generate_card(movie):
-    imdb_url = meta_links.get(str(movie['movieId']), {}).get('imdb', "#")
-    poster_url = meta_links.get(str(movie['movieId']), {}).get('poster', "https://via.placeholder.com/120x180?text=No+Image")
+    # === Affichage des films sous forme de cartes ===
+    def generate_card(movie):
+        imdb_url = meta_links.get(str(movie['movieId']), {}).get('imdb', "#")
+        poster_url = meta_links.get(str(movie['movieId']), {}).get('poster', "https://via.placeholder.com/120x180?text=No+Image")
 
-    with st.container():
-        cols = st.columns([1, 4])
-        with cols[0]:
-            st.image(poster_url, width=120)
-        with cols[1]:
-            st.markdown(f"### [{movie['title']}]({imdb_url})")
-            st.markdown(f"**Genres :** {movie['genre']}")
-            st.markdown(f"**Note moyenne :** ⭐ {movie['avg_rating']:.2f}")
-            st.markdown(f"**Nombre d'évaluations :** {movie['rating_count']}")
-            if 'tags' in movie:
-                st.markdown(f"**Tags :** *{movie['tags']}*")
-        st.divider()
+        with st.container():
+            cols = st.columns([1, 4])
+            with cols[0]:
+                st.image(poster_url, width=120)
+            with cols[1]:
+                st.markdown(f"### [{movie['title']}]({imdb_url})")
+                st.markdown(f"**Genres :** {movie['genre']}")
+                st.markdown(f"**Note moyenne :** ⭐ {movie['avg_rating']:.2f}")
+                st.markdown(f"**Nombre d'évaluations :** {movie['rating_count']}")
+                if 'tags' in movie:
+                    st.markdown(f"**Tags :** *{movie['tags']}*")
+            st.divider()
 
-# Afficher les cartes pour les 20 premiers films
-if filtered_movies.empty:
-    st.warning("Aucun film ne correspond à vos critères.")
+    # Afficher les cartes pour les 20 premiers films
+    if filtered_movies.empty:
+        st.warning("Aucun film ne correspond à vos critères.")
+    else:
+        for _, movie in filtered_movies.sort_values("avg_rating", ascending=False).head(20).iterrows():
+            generate_card(movie)
+
 else:
-    for _, movie in filtered_movies.sort_values("avg_rating", ascending=False).head(20).iterrows():
-        generate_card(movie)
+    st.info("🧭 Définissez vos filtres, puis cliquez sur **Lancer la recherche** pour explorer les films.")
